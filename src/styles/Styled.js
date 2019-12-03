@@ -5,6 +5,11 @@ export const GlobalStyle = createGlobalStyle`
     font-family: 'Kanit', sans-serif;
     font-size: 12px;
   }
+  #moonloader-wrapper {
+    display: inline-block;
+    position: absolute;
+    padding-left: 20px;
+  }
 `;
 
 export const StyledButton = styled.button`
@@ -46,7 +51,7 @@ export const StyledButton = styled.button`
 export const AppDiv = styled.div`
   display: flex;
   flex-direction: column;
-  width: 500px;
+  width: 640px;
   h1 {
     font-size: 24px;
     margin-bottom: 38px;
@@ -60,7 +65,7 @@ export const AppWrapperDiv = styled.div`
 `
 export const LogDiv = styled.div`
   max-height: 500px;
-  overflow-y: scroll;
+  overflow-y: auto;
 `
 export const RowDiv = styled.div`
   display: flex;
@@ -80,8 +85,7 @@ export const MarginDiv = styled.div`
 `
 
 export const StatusSpan = styled.span`
-  ${props => props.status !== 'unsent' && 'font-weight: bold'}
-  ${props => props.status === 'sending' && 'color: #3656C7;'}
-  ${props => props.status === 'success' && 'color: #3F922A;'}
-  ${props => props.status === 'fail' && 'color: #FF0000;'}
+  ${props => props.status === 'sending' && 'color: #3656C7; font-weight:bold'}
+  ${props => props.status === 'success' && 'color: #3F922A; font-weight:bold'}
+  ${props => props.status === 'failure' && 'color: #FF0000; font-weight:bold'}
 `

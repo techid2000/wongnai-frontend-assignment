@@ -1,9 +1,11 @@
-import React,{useRef,useState} from 'react'
-import {StyledButton} from '../styles/Styled.js';
-import {FaRegCheckCircle} from 'react-icons/fa';
+import React,{useRef} from 'react'
 import csv from 'csvtojson';
+import {FaRegCheckCircle} from 'react-icons/fa';
 
-function CSVFileInput({buttonMsg,fileName,onReadData}) {
+import {StyledButton} from '../styles/Styled.js';
+
+
+function CSVFileInput({buttonMsg,fileName,onReadData,disabled}) {
   const inputRef = useRef(null);
 
   const handleChange = (e) => {
@@ -27,6 +29,10 @@ function CSVFileInput({buttonMsg,fileName,onReadData}) {
     inputRef.current.value = '';
   }
 
+  /**
+   * The trick is creating custom button that when clicked,
+   * it'll trigger the <input type="file"/>'s click function.
+   */
   const handleClick = () => {
     inputRef.current.click();
   }
@@ -34,7 +40,7 @@ function CSVFileInput({buttonMsg,fileName,onReadData}) {
   return (
     <div>
       <label>
-        <StyledButton selectfile onClick={handleClick}>{buttonMsg}</StyledButton>
+        <StyledButton selectfile onClick={handleClick} disabled={disabled}>{buttonMsg}</StyledButton>
         {` ${fileName} `}{fileName && <FaRegCheckCircle color='#81CC75'/>}
       </label>
       <input

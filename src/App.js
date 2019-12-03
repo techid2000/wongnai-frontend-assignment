@@ -1,72 +1,46 @@
-import React, {useRef, useState, useEffect} from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import MoonLoader from 'react-spinners/MoonLoader';
 
 import {GlobalStyle, AppDiv, AppWrapperDiv, StyledButton, MarginDiv} from './styles/Styled.js';
 
 import CSVFileInput from './components/CSVFileInput';
-import StatusTable from './components/StatusTable';
+import TasksTable from './components/TasksTable';
+
+import useMailer from './hooks/useMailer';
 
 function App() {
-  const [bundle, setBundle] = useState({});
-  const [emailsStatus, setEmailsStatus] = useState([]);
-  const [working, setWorking] = useState(0);
-  const [success, setSuccess] = useState(0);
-  const [unsent, setUnsent] = useState(false);
-  const [emailFileName, setEmailFileName] = useState('');
-  const [ranksFileName, setRanksFileName] = useState('');
-  const bundleReady = () => bundle['emails'] && bundle['ranks'];
-
-  const addToBundle = (data, object) => {
-    setBundle(bundle => ({...bundle, [data]:object}));
-    console.log(bundle);
-  }
-
-  const getRankName = (id) => {
-    for(let rank of bundle['ranks']) {
-      if(rank.id === id) {
-        return rank.name;
-      }
-    }
-  }
-
-  useEffect(() => {
-    console.log(emailsStatus);
-  }, [emailsStatus])
-
+  /**
+   * Using custom `useMailer` hook,
+   * for extracting some important feature of mailing.
+   */
+  const [state, dispatch,
+    getTaskListEmpty,
+    getSending,
+    getCompleted] = useMailer();
+  /**
+   * Asynchronous function for calling API asynchronously.
+   */
   const sendEmail = async () => {
-    setEmailsStatus(current => {
-      const next = current.map((a) => {
-        if(a.status === 'fail') {
-          return {
-            ...a,
-            status: 'unsent'
-          }
-        } else {
-          return a;
-        }
-      })
-      return next;
-    })
+    dispatch({type: 'startSending'});
     try {
-      for(let index in emailsStatus) {
-        if(emailsStatus[index].status === 'unsent' ||
-        emailsStatus[index].status === 'fail') {
-          console.log(emailsStatus[index]['email']);
-          setWorking(n => n + 1);
-          setEmailsStatus(current => {
-            const next = current.map((a, j) => {
-              if(j == index) {
-                return {
-                  ...a,
-                  status: 'sending'
-                }
-              } else {
-                return a;
-              }
-            })
-            return next;
-          })
+      /**
+       * Gradually send emails one by one.
+       * ? Should this method send emails all at once?
+       */
+      for(let index in state.tasksList) {
+        const currentTask = state.tasksList[index];
+        /**
+         * Checking whether the current email is sent or not?
+         * if not then perform sending. 
+         */
+        if(currentTask.status === 'unsent' ||
+          currentTask.status === 'failure') {
+
+          dispatch({type: 'setStatusOfTask',params:{
+            index: parseInt(index),
+            status: 'sending'
+          }});
+
           const response = await fetch('https://us-central1-frontend-assignment-d6597.cloudfunctions.net/sendMail',
           {
             method: 'POST',
@@ -74,82 +48,51 @@ function App() {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              email: emailsStatus[index]['email'],
-              subject: emailsStatus[index]['subject'],
-              body: emailsStatus[index]['message']
+              email: currentTask.email,
+              subject: currentTask.subject,
+              body: currentTask.body
             })
           })
           const state = await response.status;
-          if(state === 204) setSuccess(n => n + 1);
-          setWorking(n => n - 1);
-          setEmailsStatus(current => {
-            const next = current.map((a, j) => {
-              if(j == index) {
-                return {
-                  ...a,
-                  status: state === 500 ? 'fail' : 'success'
-                }
-              } else {
-                return a;
-              }
-            })
-            return next;
-          })
+
+          if(state === 204) dispatch({type: 'increaseCompleted'});
+
+          dispatch({type: 'setStatusOfTask', params:{
+            index: parseInt(index),
+            status: state === 204 ? 'success' : 'failure'}}
+          );
         }
       }
     } catch(error) {
-      setWorking(0);
-      setEmailsStatus(current => {
-        const next = current.map((a) => {
-          if(a.status === 'sending' || a.status === 'unsent') {
-            return {
-              ...a,
-              status: 'fail'
-            }
-          } else {
-            return a;
-          }
-        })
-        return next;
-      })
+      /**
+       * ? I don't know if this is correct or not. Because it occurs when sending data consecutively to the server.
+       */
       alert("เซิฟเวอร์รับข้อมูลมากเกินไป โปรดลองใหม่ภายหลัง");
     }
+    dispatch({type: 'stopSending'});
   }
 
+  /**
+   * This is what the bottom button do when it was clicked.
+   */
   const handleSendEmails = () => {
-    if(success === emailsStatus.length) {
-      setEmailsStatus([]);
-      setEmailFileName('');
-      setRanksFileName('');
-      setBundle({});
+    if(getCompleted()) {
+      dispatch({type: 'close'});
     } else {
-      setUnsent(false);
       sendEmail();
     }
   }
 
-  useEffect(() => {
-    if(bundleReady()) {
-      setUnsent(true);
-      setSuccess(0);
-      setWorking(0);
-      setEmailsStatus(bundle['emails'].map((each) => ({
-        email: each['email'],
-        subject: `สวัสดีคุณ ${each['user_name']}`,
-        message: `สวัสดีคุณ ${each['user_name']}\n\nอีก ${each['reviews_left_to_uprank']} รีวิว คุณจะได้เป็น ${getRankName(each['user_next_rank_id'])}\nร่วมแบ่งปันรีวิวกับเพื่อนสมาชิกกันนะคะ`,
-        status: 'unsent'
-        })));
-    }
-  }, [bundle]);
-
-
+  /**
+   * This will handle the text of the bottom button.
+   */
   const getButtonText = () => {
-    if(unsent) return 'ส่งเมล';
+    if(state.process === 'idle_afterImporting') return 'ส่งเมล';
     else {
-      if(success < emailsStatus.length) {
-        return 'ลองส่งเมลล์ที่ล้มเหลวอีกครั้ง'
-      } else {
+      if(getCompleted()) {
         return 'ปิด'
+      } else {
+        return 'ลองส่งเมลล์ที่ล้มเหลวอีกครั้ง'
       }
     }
   }
@@ -162,30 +105,46 @@ function App() {
         <MarginDiv bottom='14px'>
           <CSVFileInput
             buttonMsg="เลือกไฟล์ E-mail"
-            onReadData={(obj, fn) => {
-              addToBundle('emails',obj)
-              setEmailFileName(fn);
+            onReadData={(object, fileName) => {
+              dispatch({type: 'addToBundle',params:{
+                data: 'emails',
+                object: object,
+                fileName: fileName
+              }})
             }}
-            fileName={emailFileName}
+            fileName={state.selectedEmailsFileName}
+            disabled={getSending()}
           />
         </MarginDiv>
         <MarginDiv bottom='29px'>
           <CSVFileInput
             buttonMsg="เลือกไฟล์ Rank"
-            onReadData={(obj, fn) => {
-              addToBundle('ranks',obj)
-              setRanksFileName(fn);
+            onReadData={(object, fileName) => {
+              dispatch({type: 'addToBundle',params:{
+                data: 'ranks',
+                object: object,
+                fileName: fileName
+              }})
             }}
-            fileName={ranksFileName}
+            fileName={state.selectedRanksFileName}
+            disabled={getSending()}
           />
         </MarginDiv>
-        <StatusTable status={emailsStatus}/>
+        <TasksTable status={state.tasksList}/>
         <MarginDiv top='24px'>
           {
-            emailsStatus.length > 0 && 
-            <StyledButton confirm onClick={handleSendEmails} disabled={working > 0}>
-              {getButtonText()}
-            </StyledButton>
+            getTaskListEmpty() ||
+            <div>
+              <StyledButton confirm onClick={handleSendEmails} disabled={getSending()}>
+                {getButtonText()}
+              </StyledButton>
+              {
+                getSending() && 
+                <div id='moonloader-wrapper'>
+                  <MoonLoader css={{margin: '0 auto'}} size={25}/>
+                </div>
+              }
+            </div>
           }
         </MarginDiv>
       </AppDiv>
