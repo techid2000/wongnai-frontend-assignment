@@ -5,13 +5,6 @@ export const GlobalStyle = createGlobalStyle`
     font-family: 'Kanit', sans-serif;
     font-size: 12px;
   }
-  .app {
-    display: flex;
-    flex-direction: column;
-    h1 {
-      margin-bottom: 38px;
-    }
-  }
 `;
 
 export const StyledButton = styled.button`
@@ -19,9 +12,76 @@ export const StyledButton = styled.button`
   font-size: 12px;
   line-height: 14px;
   height: 31px;
-  background: #F1F1F1;
-  border: 1px solid #000000;
   box-sizing: border-box;
   border-radius: 3px;
-  ${props => props.selectfile && 'width: 129px'}
+  cursor: pointer;
+  transition: font-size 0.1s;
+  :active {
+    font-size: 13px;
+  }
+  ${props => props.selectfile && `
+    border: 1px solid #000000;
+    min-width: 129px;
+    background: #F1F1F1;
+    :hover {
+      background: #DDDDDD;
+    }
+  `}
+  ${props => props.confirm && `
+    border: none;
+    min-width: 175px;
+    background: #81CC75;
+    font-weight: bold;
+    border-radius: 2px;
+    color: #FFFFFF;
+    :hover {
+      background: #93e386;
+    }
+    :disabled {
+      background: #DDDDDD;
+    }
+  `}
 `;
+
+export const AppDiv = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 500px;
+  h1 {
+    font-size: 24px;
+    margin-bottom: 38px;
+  }
+`
+
+export const AppWrapperDiv = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+`
+export const LogDiv = styled.div`
+  max-height: 500px;
+  overflow-y: scroll;
+`
+export const RowDiv = styled.div`
+  display: flex;
+  ${props => props.underline && 'border-bottom: 1px solid #F1E5E5'}
+`
+
+export const RowFieldDiv = styled.div`
+  flex: ${props => props.grow} 0
+  word-break: break-all
+`
+
+export const MarginDiv = styled.div`
+  margin-top: ${props => props.top};
+  margin-bottom: ${props => props.bottom};
+  margin-left: ${props => props.left};
+  margin-right: ${props => props.right};
+`
+
+export const StatusSpan = styled.span`
+  ${props => props.status !== 'unsent' && 'font-weight: bold'}
+  ${props => props.status === 'sending' && 'color: #3656C7;'}
+  ${props => props.status === 'success' && 'color: #3F922A;'}
+  ${props => props.status === 'fail' && 'color: #FF0000;'}
+`

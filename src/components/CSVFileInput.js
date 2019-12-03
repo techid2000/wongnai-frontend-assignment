@@ -3,26 +3,28 @@ import {StyledButton} from '../styles/Styled.js';
 import {FaRegCheckCircle} from 'react-icons/fa';
 import csv from 'csvtojson';
 
-function CSVFileInput({buttonMsg,onReadData}) {
+function CSVFileInput({buttonMsg,fileName,onReadData}) {
   const inputRef = useRef(null);
-  const [fileName, setFileName] = useState('');
 
   const handleChange = (e) => {
     const file = e.target.files[0];
 
-    if(!file || file.type !== "application/vnd.ms-excel") {
+    if(!file) {
       return;
     }
-      
-    setFileName(file.name);
+    if(file.type !== 'application/vnd.ms-excel') {
+      alert('กรุณาเลือกไฟล์นามสกุล .csv เท่านั้น');
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = () => {
       csv({header:true, trim: true})
         .fromString(reader.result)
-        .then((json) => onReadData(json));
+        .then((json) => onReadData(json, file.name));
     }
     reader.readAsText(file);
+    inputRef.current.value = '';
   }
 
   const handleClick = () => {
