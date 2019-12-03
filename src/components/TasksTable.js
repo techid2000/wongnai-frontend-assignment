@@ -3,16 +3,16 @@ import React from 'react'
 import TasksTableRow from './TasksTableRow'
 import { LogDiv } from '../styles/Styled';
 
-function TasksTable({status}) {
+function TasksTable({tasksList}) {
   const getStatusRow = () => {
     let components = [];
-    for(let index in status) {
+    for(let index in tasksList) {
       components.push(
         <TasksTableRow
-          email={status[index].email}
-          body={status[index].body}
-          status={status[index].status}
-          underline={index < status.length - 1}
+          email={tasksList[index].email}
+          body={tasksList[index].body}
+          status={tasksList[index].status}
+          underline={index < tasksList.length - 1}
           key={index}
         />
       )

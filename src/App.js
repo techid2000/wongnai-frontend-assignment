@@ -130,7 +130,7 @@ function App() {
             disabled={getSending()}
           />
         </MarginDiv>
-        <TasksTable status={state.tasksList}/>
+        <TasksTable tasksList={state.tasksList}/>
         <MarginDiv top='24px'>
           {
             getTaskListEmpty() ||
