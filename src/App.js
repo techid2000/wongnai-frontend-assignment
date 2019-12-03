@@ -75,7 +75,7 @@ function App() {
   /**
    * This is what the bottom button do when it was clicked.
    */
-  const handleSendEmails = () => {
+  const handleBottomButtonClicked = () => {
     if(getCompleted()) {
       dispatch({type: 'close'});
     } else {
@@ -86,7 +86,7 @@ function App() {
   /**
    * This will handle the text of the bottom button.
    */
-  const getButtonText = () => {
+  const getBottomButtonText = () => {
     if(state.process === 'idle_afterImporting') return 'ส่งเมล';
     else {
       if(getCompleted()) {
@@ -135,8 +135,8 @@ function App() {
           {
             getTaskListEmpty() ||
             <div>
-              <StyledButton confirm onClick={handleSendEmails} disabled={getSending()}>
-                {getButtonText()}
+              <StyledButton confirm onClick={handleBottomButtonClicked} disabled={getSending()}>
+                {getBottomButtonText()}
               </StyledButton>
               {
                 getSending() && 
