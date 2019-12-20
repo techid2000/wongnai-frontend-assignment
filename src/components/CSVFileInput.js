@@ -14,7 +14,10 @@ function CSVFileInput({buttonMsg,fileName,onReadData,disabled}) {
     if(!file) {
       return;
     }
-    if(file.type !== 'application/vnd.ms-excel') {
+
+    console.log(file.type);
+
+    if(file.type !== 'application/vnd.ms-excel' && file.type !== 'text/csv') {
       alert('กรุณาเลือกไฟล์นามสกุล .csv เท่านั้น');
       return;
     }
